@@ -1,1 +1,1 @@
-from meetings import Meetings
+from .meetings import Meetings

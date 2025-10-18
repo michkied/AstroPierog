@@ -2,7 +2,9 @@ from abc import ABC
 from datetime import datetime
 import discord
 from discord.ext import commands
+from logzero import logfile
 
+from bot.data import Data
 from bot.meetings import Meetings
 from bot.projects import Projects
 from bot.config import TOKEN, GUILD
@@ -13,10 +15,13 @@ class AstroPierog(commands.Bot, ABC):
         super().__init__(
             command_prefix=commands.when_mentioned_or('?'),
             intents=discord.Intents.all(),
+            auto_sync_commands=False,
             debug_guilds=[GUILD]
         )
 
+        self.data = Data()
         self.remove_command('help')
+        logfile("pierog.log", encoding='UTF-8')
         self.add_cog(Meetings(self))
         self.add_cog(Projects(self))
         self.run(TOKEN)
