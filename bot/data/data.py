@@ -21,7 +21,7 @@ class Data:
             'coordinators': {str(k): v.to_dict() for k, v in self.coordinators.items()}
         }, ensure_ascii=False, indent=4)
         async with lock:
-            async with aiofiles.open('data.json', 'w+') as f:
+            async with aiofiles.open(os.path.join(path, 'data.json'), 'w+') as f:
                 await f.write(data)
 
     def load(self):
