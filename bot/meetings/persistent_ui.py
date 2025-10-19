@@ -119,11 +119,6 @@ class ScheduleDaySelect(ui.Select):
         guild = self.bot.get_guild(GUILD)
         division_roles = list(map(lambda x: guild.get_role(x), DIVISION_ROLES))
 
-        if not self.bot.data.coordinators:
-            schedule_text += "No meetings scheduled for this day."
-            await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
-            return
-
         for coordinator in self.bot.data.coordinators.values():
             coordinators.append(self.bot.get_user(coordinator.ID))
             booked = sorted((ts for ts in coordinator.time_slots if ts.date == date_str and ts.is_booked), key=lambda ts: ts.hour)
@@ -149,6 +144,11 @@ class ScheduleDaySelect(ui.Select):
             else:
                 schedule_text += "No free slots\n"
             schedule_text += "\n"
+
+        if schedule_text.strip() == f"## Meeting Schedule for {date_str}":
+            schedule_text += "No meetings scheduled for this day."
+            await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
+            return
 
         for role in division_roles:
             if role in guild.get_member(interaction.user.id).roles:
