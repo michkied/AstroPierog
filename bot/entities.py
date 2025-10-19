@@ -35,7 +35,6 @@ class TimeSlot:
         self.recruit = recruit
         recruit.meeting = self
         self.coordinator = coordinator
-        coordinator.time_slots.append(self)
 
     def __repr__(self):
         return f"TimeSlot(date={self.date}, hour={self.hour}, is_booked={self.is_booked})"
