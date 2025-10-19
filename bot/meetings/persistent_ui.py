@@ -4,7 +4,7 @@ from .views import *
 from ..entities import *
 from datetime import datetime, timedelta
 
-from ..config import LAST_DAY
+from ..config import *
 from ..helpers import is_within_24_hours
 
 
@@ -112,13 +112,27 @@ class ScheduleDaySelect(ui.Select):
         schedule_text = f"## Meeting Schedule for {date_str}\n"
         coordinators = []
         free_hours = set()
+        guild = self.bot.get_guild(GUILD)
+        roles = list(map(lambda x: guild.get_role(x), DIVISION_ROLES))
+
+        if not self.bot.data.coordinators:
+            schedule_text += "No meetings scheduled for this day."
+            await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
+            return
+
         for coordinator in self.bot.data.coordinators.values():
             coordinators.append(self.bot.get_user(coordinator.ID))
             booked = sorted((ts for ts in coordinator.time_slots if ts.date == date_str and ts.is_booked), key=lambda ts: ts.hour)
             free = sorted((ts for ts in coordinator.time_slots if ts.date == date_str and not ts.is_booked), key=lambda ts: ts.hour)
             if not booked and not free:
                 continue
-            schedule_text += f"### Coordinator <@{coordinator.ID}>\n"
+
+            role_str = ""
+            for role in roles:
+                if role in guild.get_member(coordinator.ID).roles:
+                    role_str += f"{role.mention} "
+
+            schedule_text += f"### <@{coordinator.ID}> - {role_str}\n"
             if booked:
                 for ts in booked:
                     schedule_text += f"- {ts.hour}: Meeting with <@{ts.recruit.ID}>\n"
@@ -130,10 +144,7 @@ class ScheduleDaySelect(ui.Select):
                 schedule_text = schedule_text[:-1] + "\n"
             else:
                 schedule_text += "No free slots\n"
-        if schedule_text.strip() == f"## Meeting Schedule for {date_str}":
-            schedule_text += "No meetings scheduled for this day."
-            await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
-            return
+            schedule_text += "\n"
 
         if interaction.user.id not in self.bot.data.recruits:
             self.bot.data.recruits[interaction.user.id] = Recruit(interaction.user.id)
@@ -145,7 +156,7 @@ class ScheduleDaySelect(ui.Select):
 
         if recruit.meeting is None:
             if is_within_24_hours(date_str, max(free_hours)):
-                schedule_text += "\n\n:warning: **You cannot book meetings less than 24 hours before they are scheduled.**"
+                schedule_text += "\n:warning: **You cannot book meetings less than 24 hours before they are scheduled.**"
                 await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
                 return
             await self.book_sequence(schedule_text, interaction, date_str)
@@ -155,14 +166,14 @@ class ScheduleDaySelect(ui.Select):
             if recruit.meeting.date != date_str:
                 await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
                 return
-            schedule_text += "\n\n:warning: **You cannot cancel meetings less than 24 hours before they are scheduled.**"
+            schedule_text += "\n:warning: **You cannot cancel meetings less than 24 hours before they are scheduled.**"
             await interaction.response.send_message(content=schedule_text, ephemeral=True, delete_after=90)
             return
 
         await self.cancel_sequence(schedule_text, interaction, recruit)
 
     async def book_sequence(self, schedule_text: str, interaction: discord.Interaction, date_str: str):
-        schedule_text += "\n\n## Book a meeting:"
+        schedule_text += "\n## Book a meeting:"
         view = BookMeetingView(self.bot, date_str)
         await interaction.response.send_message(content=schedule_text, view=view, ephemeral=True, delete_after=90)
         await view.wait()
@@ -197,7 +208,7 @@ class ScheduleDaySelect(ui.Select):
         await view.interaction.response.edit_message(content=":white_check_mark: **Booking successful!**", view=None, delete_after=90)
 
     async def cancel_sequence(self, schedule_text: str, interaction: discord.Interaction, recruit: Recruit):
-        schedule_text += f"\n\nYou already have a meeting booked on {recruit.meeting.date} at {recruit.meeting.hour} with <@{recruit.meeting.coordinator.ID}>.\n"
+        schedule_text += f"\nYou already have a meeting booked on {recruit.meeting.date} at {recruit.meeting.hour} with <@{recruit.meeting.coordinator.ID}>.\n"
         view = CancelMeetingView(self.bot)
         await interaction.response.send_message(content=schedule_text, view=view, ephemeral=True, delete_after=90)
         await view.wait()
