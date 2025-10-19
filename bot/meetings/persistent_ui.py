@@ -134,9 +134,9 @@ class ScheduleDaySelect(ui.Select):
             role_str = ""
             for role in division_roles:
                 if role in guild.get_member(coordinator.ID).roles:
-                    role_str += f"{role.mention} "
+                    role_str += f"{role.mention}"
 
-            schedule_text += f"### <@{coordinator.ID}> - {role_str}\n"
+            schedule_text += f"### <@{coordinator.ID}>\n{role_str}\n"
             if booked:
                 for ts in booked:
                     schedule_text += f"- {ts.hour}: Meeting with <@{ts.recruit.ID}>\n"
