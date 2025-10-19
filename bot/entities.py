@@ -18,12 +18,18 @@ class Coordinator(Person):
         super().__init__(ID)
         self.time_slots = []
 
+    def to_dict(self):
+        return {
+            'time_slots': [{'date': ts.date, 'hour': ts.hour,
+                            'recruit_id': ts.recruit.ID if ts.recruit else None} for ts in self.time_slots]
+        }
+
     def __repr__(self):
         return f"Coordinator(id={self.ID}, time_slots={self.time_slots})"
 
 
 class TimeSlot:
-    def __init__(self, date: str, hour: str):  # date is in format "DD.MM", hour is in format "HH:MM"
+    def __init__(self, date: str, hour: str):
         self.date = date
         self.hour = hour
         self.is_booked = False
@@ -35,6 +41,13 @@ class TimeSlot:
         self.recruit = recruit
         recruit.meeting = self
         self.coordinator = coordinator
+
+    def cancel(self):
+        if self.recruit:
+            self.recruit.meeting = None
+        self.is_booked = False
+        self.recruit = None
+        self.coordinator = None
 
     def __repr__(self):
         return f"TimeSlot(date={self.date}, hour={self.hour}, is_booked={self.is_booked})"

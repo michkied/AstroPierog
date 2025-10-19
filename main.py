@@ -20,6 +20,8 @@ class AstroPierog(commands.Bot, ABC):
         )
 
         self.data = Data()
+        self.data.load()
+
         self.remove_command('help')
         logfile("pierog.log", encoding='UTF-8')
         self.add_cog(Meetings(self))
