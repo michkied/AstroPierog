@@ -1,9 +1,8 @@
-from select import select
+from logzero import logger
+from datetime import datetime, timedelta
 
 from .views import *
 from ..entities import *
-from datetime import datetime, timedelta
-
 from ..config import *
 from ..helpers import is_within_24_hours
 
@@ -35,6 +34,7 @@ class AddSlotsButton(ui.Button):
                 self.bot.data.coordinators[user.id].time_slots.append(TimeSlot(date_str, time_str))
 
         await self.bot.data.store()
+        logger.info(f"Coordinator {user.id} added time slots: Dates {view.date_select.values}, Times {view.time_select.values}")
         await view.interaction.response.edit_message(content=":white_check_mark: **Time slots added successfully**", view=None)
 
 
@@ -83,6 +83,7 @@ class RemoveSlotsButton(ui.Button):
                     return
                 interaction = view.interaction
                 if view.keep:
+                    logger.info(f"Coordinator {user.id} kept booked time slot on {ts.date} at {ts.hour} booked by {ts.recruit.ID}")
                     continue
                 coordinator_name = self.bot.get_guild(GUILD).get_member(coordinator.ID).display_name
                 recruit = self.bot.get_guild(GUILD).get_member(ts.recruit.ID)
@@ -94,8 +95,10 @@ class RemoveSlotsButton(ui.Button):
                 await self.bot.get_user(coordinator.ID).send(f":white_check_mark: You have successfully removed the booked time slot on **{ts.date}** at **{ts.hour}** with **{recruit_name}** (<@{ts.recruit.ID}>).**")
                 ts.cancel()
                 coordinator.time_slots.remove(ts)
+                logger.info(f"Coordinator {user.id} removed booked time slot on {ts.date} at {ts.hour} booked by {ts.recruit.ID}")
 
         await self.bot.data.store()
+        logger.info(f"Coordinator {user.id} removed time slots on {date_str}: Times {selected}")
         await interaction.response.edit_message(content=":white_check_mark: **Time slots removed successfully**", view=None)
 
 
@@ -118,6 +121,8 @@ class ScheduleDaySelect(ui.Select):
         free_hours = set()
         guild = self.bot.get_guild(GUILD)
         division_roles = list(map(lambda x: guild.get_role(x), DIVISION_ROLES))
+
+        logger.info(f"User {interaction.user.id} requested meeting schedule for {date_str}")
 
         for coordinator in self.bot.data.coordinators.values():
             coordinators.append(self.bot.get_user(coordinator.ID))
@@ -210,6 +215,7 @@ class ScheduleDaySelect(ui.Select):
         slot.book(recruit, coordinator)
 
         await self.bot.data.store()
+        logger.info(f"Recruit {recruit.ID} booked meeting on {slot.date} at {slot.hour} with coordinator {coordinator.ID}")
         coordinator_name = self.bot.get_guild(GUILD).get_member(coordinator.ID).display_name
         recruit_name = self.bot.get_guild(GUILD).get_member(recruit.ID).display_name
         await interaction.user.send(f":white_check_mark: You have successfully booked a meeting on **{slot.date}** at **{slot.hour}** with **{coordinator_name}** (<@{coordinator.ID}>).")
@@ -236,6 +242,7 @@ class ScheduleDaySelect(ui.Select):
         coordinator_name = self.bot.get_guild(GUILD).get_member(recruit.meeting.coordinator.ID).display_name
         recruit_name = self.bot.get_guild(GUILD).get_member(recruit.ID).display_name
         await self.bot.data.store()
+        logger.info(f"Recruit {recruit.ID} cancelled meeting on {recruit.meeting.date} at {recruit.meeting.hour} with coordinator {recruit.meeting.coordinator.ID}")
         await interaction.user.send(f":white_check_mark: You have successfully cancelled your meeting on **{recruit.meeting.date}** at **{recruit.meeting.hour}** with **{coordinator_name}** (<@{recruit.meeting.coordinator.ID}>).**")
         await self.bot.get_user(recruit.meeting.coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has cancelled their meeting with you on **{recruit.meeting.date}** at **{recruit.meeting.hour}**.")
         recruit.meeting.cancel()

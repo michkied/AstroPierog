@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import datetime
 import discord
 from discord.ext import commands
-from logzero import logfile
+from logzero import logfile, logger
 
 from bot.data import Data
 from bot.meetings import Meetings
@@ -30,6 +30,7 @@ class AstroPierog(commands.Bot, ABC):
 
     async def on_ready(self):
         date = datetime.now()
+        logger.info(f'Logged in as {self.user} ({self.user.id})')
         print(f'Logged in as {self.user}')
         print(self.user.display_name)
         print(self.user.id)
