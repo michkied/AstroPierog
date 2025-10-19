@@ -1,10 +1,14 @@
 import json
+import os
+import pathlib
+
 import aiofiles
 import asyncio
 
 from bot.entities import *
 
 lock = asyncio.Lock()
+path = str(pathlib.Path(__file__).parent.absolute())
 
 
 class Data:
@@ -22,7 +26,7 @@ class Data:
 
     def load(self):
         try:
-            with open('data.json', 'r', encoding='UTF-8') as f:
+            with open(os.path.join(path, 'data.json'), 'r', encoding='UTF-8') as f:
                 data = json.load(f)
 
             for coord_id, coord_data in data.get('coordinators', {}).items():
