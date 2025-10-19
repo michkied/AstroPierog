@@ -91,8 +91,14 @@ class RemoveSlotsButton(ui.Button):
                     recruit_name = recruit.display_name
                 else:
                     recruit_name = "Unknown Recruit"
-                await self.bot.get_user(ts.recruit.ID).send(f":warning: Your meeting on **{ts.date}** at **{ts.hour}** with **{coordinator_name}** (<@{coordinator.ID}>) has been cancelled. If you have any questions, please contact the coordinator.")
-                await self.bot.get_user(coordinator.ID).send(f":white_check_mark: You have successfully removed the booked time slot on **{ts.date}** at **{ts.hour}** with **{recruit_name}** (<@{ts.recruit.ID}>).**")
+                try:
+                    await self.bot.get_user(ts.recruit.ID).send(f":warning: Your meeting on **{ts.date}** at **{ts.hour}** with **{coordinator_name}** (<@{coordinator.ID}>) has been cancelled. If you have any questions, please contact the coordinator.")
+                except:
+                    logger.info(f"Could not send DM to recruit {ts.recruit.ID} about meeting cancellation.")
+                try:
+                    await self.bot.get_user(coordinator.ID).send(f":white_check_mark: You have successfully removed the booked time slot on **{ts.date}** at **{ts.hour}** with **{recruit_name}** (<@{ts.recruit.ID}>).**")
+                except:
+                    logger.info(f"Could not send DM to coordinator {coordinator.ID} about booked time slot removal.")
                 ts.cancel()
                 coordinator.time_slots.remove(ts)
                 logger.info(f"Coordinator {user.id} removed booked time slot on {ts.date} at {ts.hour} booked by {ts.recruit.ID}")
@@ -218,8 +224,14 @@ class ScheduleDaySelect(ui.Select):
         logger.info(f"Recruit {recruit.ID} booked meeting on {slot.date} at {slot.hour} with coordinator {coordinator.ID}")
         coordinator_name = self.bot.get_guild(GUILD).get_member(coordinator.ID).display_name
         recruit_name = self.bot.get_guild(GUILD).get_member(recruit.ID).display_name
-        await interaction.user.send(f":white_check_mark: You have successfully booked a meeting on **{slot.date}** at **{slot.hour}** with **{coordinator_name}** (<@{coordinator.ID}>).")
-        await self.bot.get_user(coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has booked a meeting with you on **{slot.date}** at **{slot.hour}**.")
+        try:
+            await self.bot.get_user(coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has booked a meeting with you on **{slot.date}** at **{slot.hour}**.")
+        except:
+            logger.info(f"Could not send DM to coordinator {coordinator.ID} about new meeting booking.")
+        try:
+            await interaction.user.send(f":white_check_mark: You have successfully booked a meeting on **{slot.date}** at **{slot.hour}** with **{coordinator_name}** (<@{coordinator.ID}>).")
+        except:
+            logger.info(f"Could not send DM to recruit {recruit.ID} about successful meeting booking.")
         await view.interaction.response.edit_message(content=":white_check_mark: **Booking successful!**", view=None, delete_after=90)
 
     async def cancel_sequence(self, schedule_text: str, interaction: discord.Interaction, recruit: Recruit):
@@ -243,7 +255,13 @@ class ScheduleDaySelect(ui.Select):
         recruit_name = self.bot.get_guild(GUILD).get_member(recruit.ID).display_name
         await self.bot.data.store()
         logger.info(f"Recruit {recruit.ID} cancelled meeting on {recruit.meeting.date} at {recruit.meeting.hour} with coordinator {recruit.meeting.coordinator.ID}")
-        await interaction.user.send(f":white_check_mark: You have successfully cancelled your meeting on **{recruit.meeting.date}** at **{recruit.meeting.hour}** with **{coordinator_name}** (<@{recruit.meeting.coordinator.ID}>).**")
-        await self.bot.get_user(recruit.meeting.coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has cancelled their meeting with you on **{recruit.meeting.date}** at **{recruit.meeting.hour}**.")
+        try:
+            await interaction.user.send(f":white_check_mark: You have successfully cancelled your meeting on **{recruit.meeting.date}** at **{recruit.meeting.hour}** with **{coordinator_name}** (<@{recruit.meeting.coordinator.ID}>).**")
+        except:
+            logger.info(f"Could not send DM to recruit {recruit.ID} about successful meeting cancellation.")
+        try:
+            await self.bot.get_user(recruit.meeting.coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has cancelled their meeting with you on **{recruit.meeting.date}** at **{recruit.meeting.hour}**.")
+        except:
+            logger.info(f"Could not send DM to coordinator {recruit.meeting.coordinator.ID} about meeting cancellation.")
         recruit.meeting.cancel()
         await interaction.response.edit_message(content=":white_check_mark: **Meeting cancelled successfully!**", view=None, delete_after=90)
