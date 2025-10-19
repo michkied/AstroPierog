@@ -85,7 +85,11 @@ class RemoveSlotsButton(ui.Button):
                 if view.keep:
                     continue
                 coordinator_name = self.bot.get_guild(GUILD).get_member(coordinator.ID).display_name
-                recruit_name = self.bot.get_guild(GUILD).get_member(ts.recruit.ID).display_name
+                recruit = self.bot.get_guild(GUILD).get_member(ts.recruit.ID)
+                if recruit is not None:
+                    recruit_name = recruit.display_name
+                else:
+                    recruit_name = "Unknown Recruit"
                 await self.bot.get_user(ts.recruit.ID).send(f":warning: Your meeting on **{ts.date}** at **{ts.hour}** with **{coordinator_name}** (<@{coordinator.ID}>) has been cancelled. If you have any questions, please contact the coordinator.")
                 await self.bot.get_user(coordinator.ID).send(f":white_check_mark: You have successfully removed the booked time slot on **{ts.date}** at **{ts.hour}** with **{recruit_name}** (<@{ts.recruit.ID}>).**")
                 ts.cancel()
