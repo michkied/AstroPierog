@@ -231,8 +231,8 @@ class ScheduleDaySelect(ui.Select):
 
         coordinator_name = self.bot.get_guild(GUILD).get_member(recruit.meeting.coordinator.ID).display_name
         recruit_name = self.bot.get_guild(GUILD).get_member(recruit.ID).display_name
-        recruit.meeting.cancel()
         await self.bot.data.store()
         await interaction.user.send(f":white_check_mark: You have successfully cancelled your meeting on **{recruit.meeting.date}** at **{recruit.meeting.hour}** with **{coordinator_name}** (<@{recruit.meeting.coordinator.ID}>).**")
         await self.bot.get_user(recruit.meeting.coordinator.ID).send(f"{recruit_name} (<@{recruit.ID}>) has cancelled their meeting with you on **{recruit.meeting.date}** at **{recruit.meeting.hour}**.")
+        recruit.meeting.cancel()
         await interaction.response.edit_message(content=":white_check_mark: **Meeting cancelled successfully!**", view=None, delete_after=90)
