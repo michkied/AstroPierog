@@ -1,3 +1,5 @@
+import os
+import pathlib
 from abc import ABC
 from datetime import datetime
 import discord
@@ -8,6 +10,8 @@ from bot.data import Data
 from bot.meetings import Meetings
 from bot.projects import Projects
 from bot.config import TOKEN, GUILD
+
+path = str(pathlib.Path(__file__).parent.absolute())
 
 
 class AstroPierog(commands.Bot, ABC):
@@ -23,7 +27,7 @@ class AstroPierog(commands.Bot, ABC):
         self.data.load()
 
         self.remove_command('help')
-        logfile("pierog.log", encoding='UTF-8')
+        logfile(os.path.join(path, "pierog.log"), encoding='UTF-8')
         self.add_cog(Meetings(self))
         self.add_cog(Projects(self))
         self.run(TOKEN)
