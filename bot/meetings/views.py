@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import discord.ui as ui
 import discord
-from ..config import LAST_DAY, TIMES, GUILD
+from ..config import FIRST_DAY, LAST_DAY, TIMES, GUILD
 from ..helpers import is_within_24_hours
 
 
@@ -16,6 +16,8 @@ class AddDateView(ui.View):
 
         date_select = ui.Select(placeholder="Select date")
         top_day = datetime.now()
+        if (top_day < FIRST_DAY):
+            top_day = FIRST_DAY
         while len(date_select.options) < 25 and top_day <= LAST_DAY:
             date = top_day.strftime("%d.%m")
             date_select.add_option(label=date, value=date)

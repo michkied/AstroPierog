@@ -6,6 +6,7 @@ OWNER_ID = 0
 
 TIMES = []
 
-LAST_DAY = datetime(2025, 11, 30)
+FIRST_DAY = datetime(2026, 10, 19)
+LAST_DAY = datetime(2026, 11, 30)
 
 DIVISION_ROLES = []

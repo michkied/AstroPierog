@@ -114,6 +114,8 @@ class ScheduleDaySelect(ui.Select):
         super().__init__(placeholder="Select date", custom_id="SCHEDULE_DAY_SELECT")
 
         top_day = datetime.now()
+        if (top_day < FIRST_DAY):
+            top_day = FIRST_DAY
         while len(self.options) < 25 and top_day <= LAST_DAY:
             date = top_day.strftime("%d.%m")
             self.add_option(label=date, value=date)
