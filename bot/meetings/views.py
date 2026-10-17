@@ -11,12 +11,12 @@ async def ignore_callback(interaction: discord.Interaction):
 
 class AddDateView(ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=90)
         self.interaction = None
 
         date_select = ui.Select(placeholder="Select date")
         top_day = datetime.now()
-        if (top_day < FIRST_DAY):
+        if top_day < FIRST_DAY:
             top_day = FIRST_DAY
         while len(date_select.options) < 25 and top_day <= LAST_DAY:
             date = top_day.strftime("%d.%m")
@@ -49,7 +49,7 @@ class AddDateView(ui.View):
 
 class RemoveDateView(ui.View):
     def __init__(self, bot, coordinator_id, chosen_date: str = None):
-        super().__init__(timeout=None)
+        super().__init__(timeout=90)
         self.interaction = None
         self.bot = bot
 
@@ -82,7 +82,7 @@ class RemoveDateView(ui.View):
 
 class ConfirmDateRemovalView(ui.View):
     def __init__(self):
-        super().__init__(timeout=None)
+        super().__init__(timeout=90)
         self.interaction = None
         self.keep = None
 
@@ -108,7 +108,7 @@ class ConfirmDateRemovalView(ui.View):
 
 class BookMeetingView(ui.View):
     def __init__(self, bot, date_str: str, chosen_coordinator: int = None):
-        super().__init__(timeout=None)
+        super().__init__(timeout=90)
         self.interaction = None
         self.bot = bot
         guild = bot.get_guild(GUILD)
@@ -116,12 +116,12 @@ class BookMeetingView(ui.View):
         if chosen_coordinator is None:
             self.select = ui.Select(placeholder="Select coordinator")
             for coordinator in bot.data.coordinators.values():
-                if any(ts.date == date_str and not ts.is_booked for ts in coordinator.time_slots):
+                if any(ts.date == date_str and not ts.is_booked and not is_within_24_hours(ts.date, ts.hour) for ts in coordinator.time_slots):
                     self.select.add_option(value=f"{coordinator.ID}", label=guild.get_member(coordinator.ID).display_name)
             self.btn = ui.Button(label="Continue to booking", style=discord.enums.ButtonStyle.grey)
         else:
             self.select = ui.Select(placeholder="Select time")
-            for ts in self.bot.data.coordinators[chosen_coordinator].time_slots:
+            for ts in bot.data.coordinators[chosen_coordinator].time_slots:
                 if ts.date == date_str and not ts.is_booked and not is_within_24_hours(ts.date, ts.hour):
                     self.select.add_option(label=ts.hour, value=ts.hour)
             self.btn = ui.Button(label="Book", style=discord.enums.ButtonStyle.green)
@@ -141,7 +141,7 @@ class BookMeetingView(ui.View):
 
 class CancelMeetingView(ui.View):
     def __init__(self, bot, confirmation=False):
-        super().__init__(timeout=None)
+        super().__init__(timeout=90)
         self.interaction = None
         self.bot = bot
 

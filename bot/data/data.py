@@ -7,7 +7,6 @@ import asyncio
 
 from bot.entities import *
 
-lock = asyncio.Lock()
 path = str(pathlib.Path(__file__).parent.absolute())
 
 
@@ -15,14 +14,14 @@ class Data:
     def __init__(self):
         self.coordinators = {}  # key: coordinator ID, value: Coordinator object
         self.recruits = {}  # key: recruit ID, value: Recruit object
+        self.lock = asyncio.Lock()
 
     async def store(self):
         data = json.dumps({
             'coordinators': {str(k): v.to_dict() for k, v in self.coordinators.items()}
         }, ensure_ascii=False, indent=4)
-        async with lock:
-            async with aiofiles.open(os.path.join(path, 'data.json'), 'w+') as f:
-                await f.write(data)
+        async with aiofiles.open(os.path.join(path, 'data.json'), 'w+') as f:
+            await f.write(data)
 
     def load(self):
         try:
