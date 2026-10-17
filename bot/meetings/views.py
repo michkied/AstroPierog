@@ -15,7 +15,7 @@ class AddDateView(ui.View):
         self.interaction = None
 
         date_select = ui.Select(placeholder="Select date")
-        top_day = datetime.now()
+        top_day = datetime.date(datetime.now())
         if top_day < FIRST_DAY:
             top_day = FIRST_DAY
         while len(date_select.options) < 25 and top_day <= LAST_DAY:
