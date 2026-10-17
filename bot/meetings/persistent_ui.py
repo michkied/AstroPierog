@@ -171,19 +171,24 @@ class ScheduleDaySelect(ui.Select):
                 if coord_member and role in coord_member.roles:
                     role_str += f"{role.mention}"
 
-            schedule_text += f"### <@{coordinator.ID}>\n{role_str}\n"
+            coord_text = f"### <@{coordinator.ID}>\n{role_str}\n"
             if booked:
                 for ts in booked:
-                    schedule_text += f"- {ts.hour}: Meeting with <@{ts.recruit.ID}>\n"
+                    coord_text += f"- {ts.hour}: Meeting with <@{ts.recruit.ID}>\n"
             if free:
-                schedule_text += "Free slots:"
+                coord_text += "Free slots:"
                 for ts in free:
                     free_hours.add(ts.hour)
-                    schedule_text += f" {ts.hour},"
-                schedule_text = schedule_text[:-1] + "\n"
+                    coord_text += f" {ts.hour},"
+                coord_text = coord_text[:-1] + "\n"
             else:
-                schedule_text += "No free slots\n"
-            schedule_text += "\n"
+                coord_text += "No free slots\n"
+            coord_text += "\n"
+
+            if len(schedule_text) + len(coord_text) > 1800:
+                await interaction.followup.send(content=schedule_text, ephemeral=True, delete_after=90)
+                schedule_text = ""
+            schedule_text += coord_text
 
         if schedule_text.strip() == f"## Meeting Schedule for {date_str}":
             schedule_text += "No meetings scheduled for this day."
